@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Countdown to PATRI!</title>
+    <style>
+        :root {
+            --bg: #fbf2e6;
+            --panel: #fffdfa;
+            --panel-border: #f0d7b8;
+            --accent: #9e1f2e;
+            --accent-soft: #e8ba5d;
+            --text: #2e2724;
+            --muted: #7a6254;
+            --info: #8a1e2f;
+            --success: #2f6a49;
+            --status: #b27a31;
+            --tile-bg: #fff9f1;
+            --tile-border: #efd9bd;
+            --tile-hover: #e6b675;
+            --tile-shadow: 0 2px 10px rgba(102, 40, 24, 0.08);
+            --shadow: 0 16px 32px rgba(85, 35, 24, 0.12);
+        }
+
+        body[data-theme="dark"] {
+            --bg: #19161b;
+            --panel: #231f26;
+            --panel-border: #4b3943;
+            --accent: #ffb9c5;
+            --accent-soft: #e9b968;
+            --text: #f2e8e4;
+            --muted: #cab5aa;
+            --info: #ff9aad;
+            --success: #9dd4b5;
+            --status: #f0be79;
+            --tile-bg: #2a232b;
+            --tile-border: #4b3a46;
+            --tile-hover: #7d5056;
+            --tile-shadow: 0 2px 10px rgba(0, 0, 0, 0.28);
+            --shadow: 0 18px 34px rgba(0, 0, 0, 0.35);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Segoe UI", "Inter", "Helvetica Neue", Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 32px 20px 40px;
+            transition: background-color 0.22s ease, color 0.22s ease;
+        }
+
+        .page {
+            width: min(980px, 100%);
+            margin: 0 auto;
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 22px;
+            padding: 28px 24px 30px;
+            box-shadow: var(--shadow);
+            transition: background-color 0.22s ease, border-color 0.22s ease;
+        }
+
+        .page::before {
+            content: "";
+            display: block;
+            height: 8px;
+            border-radius: 999px;
+            margin-bottom: 14px;
+            background: linear-gradient(90deg, #aa151b 0%, #f1bf00 50%, #aa151b 100%);
+        }
+
+        .page-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: flex-end;
+            margin-bottom: 6px;
+        }
+
+        #theme-toggle {
+            border: 1px solid var(--panel-border);
+            background: transparent;
+            color: var(--muted);
+            font: inherit;
+            font-size: 0.9rem;
+            padding: 6px 10px;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: border-color 0.18s ease, color 0.18s ease, background-color 0.18s ease;
+        }
+
+        #theme-toggle:hover {
+            color: var(--text);
+            border-color: var(--accent-soft);
+            background: color-mix(in srgb, var(--accent-soft) 20%, transparent);
+        }
+
+        h1 {
+            margin: 4px 0 12px;
+            text-align: center;
+            color: var(--accent);
+            font-size: clamp(1.8rem, 1.2rem + 2vw, 2.5rem);
+            letter-spacing: 0.1px;
+            font-weight: 650;
+        }
+
+        h2 {
+            margin: 0;
+            text-align: center;
+            color: var(--muted);
+            font-size: clamp(1rem, 0.9rem + 0.6vw, 1.35rem);
+            font-weight: 600;
+        }
+
+        #countdown {
+            color: var(--info);
+            font-weight: 700;
+        }
+
+        .hero {
+            margin: 18px auto 0;
+            width: min(780px, 100%);
+            border: 1px solid var(--panel-border);
+            border-radius: 16px;
+            padding: 14px;
+            background: color-mix(in srgb, var(--tile-bg) 88%, white);
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .hero-photo {
+            width: 126px;
+            height: 126px;
+            object-fit: cover;
+            border-radius: 14px;
+            border: 2px solid var(--accent-soft);
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.14);
+            flex-shrink: 0;
+        }
+
+        .hero-copy {
+            min-width: 0;
+        }
+
+        .hero-title {
+            margin: 0;
+            color: var(--accent);
+            font-size: 1.08rem;
+            font-weight: 700;
+        }
+
+        .hero-text {
+            margin: 8px 0 0;
+            color: var(--muted);
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+
+        #calendar {
+            margin: 28px auto 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+            gap: 12px;
+            width: 100%;
+        }
+
+        .calendar-day {
+            background: var(--tile-bg);
+            border: 1px solid var(--tile-border);
+            border-radius: 14px;
+            min-height: 98px;
+            padding: 10px 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background-color 0.22s ease;
+            box-shadow: var(--tile-shadow);
+        }
+
+        .calendar-day:hover {
+            transform: translateY(-2px);
+            border-color: var(--tile-hover);
+            box-shadow: 0 8px 18px rgba(14, 20, 33, 0.14);
+        }
+
+        .calendar-day[data-revealed="true"] {
+            background: color-mix(in srgb, var(--accent-soft) 24%, var(--tile-bg));
+            border-color: var(--accent-soft);
+            cursor: default;
+        }
+
+        .calendar-day[data-revealed="true"]:hover {
+            transform: none;
+        }
+
+        .calendar-day[data-locked="true"] {
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+
+        .calendar-day[data-locked="true"]:hover {
+            transform: none;
+            border-color: var(--tile-border);
+            box-shadow: var(--tile-shadow);
+        }
+
+        .calendar-day .day-number {
+            font-weight: 700;
+            color: var(--accent);
+            font-size: 1.65rem;
+            line-height: 1;
+        }
+
+        .calendar-day .word {
+            margin-top: 8px;
+            font-size: 1.03rem;
+            font-weight: 600;
+            color: var(--success);
+        }
+
+        .calendar-day .translation {
+            color: var(--muted);
+            font-size: 0.86rem;
+            margin-top: 4px;
+            line-height: 1.2;
+        }
+
+        .calendar-day .status {
+            color: var(--status);
+        }
+
+        @media (max-width: 620px) {
+            body {
+                padding: 20px 12px 28px;
+            }
+
+            .page {
+                padding: 20px 14px 22px;
+                border-radius: 16px;
+            }
+
+            .page-top {
+                margin-bottom: 4px;
+            }
+
+            .hero {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .hero-photo {
+                width: 138px;
+                height: 138px;
+            }
+
+            #calendar {
+                grid-template-columns: repeat(3, minmax(80px, 1fr));
+            }
+
+            .calendar-day {
+                min-height: 92px;
+            }
+
+            .calendar-day .day-number {
+                font-size: 1.45rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="page">
+        <div class="page-top">
+            <button id="theme-toggle" type="button" aria-label="Toggle dark mode">Dark mode</button>
+        </div>
+        <h1>PATRI COUNTDOWN</h1>
+        <h2>Countdown to Patri's Arrival: <span id="countdown"></span></h2>
+        <section class="hero" aria-label="Patri spotlight">
+            <img
+                class="hero-photo"
+                src="file:///C:/Users/markn/.cursor/projects/c-Users-markn-Downloads/assets/c__Users_markn_AppData_Roaming_Cursor_User_workspaceStorage_bd5df46929baec66947c0a3554b8f8b6_images_image-03f55124-df31-4770-aa84-0a1c0feee52b.png"
+                alt="Patri smiling in a light blue shirt"
+            />
+            <div class="hero-copy">
+                <p class="hero-title">Fiesta countdown for Patri</p>
+                <p class="hero-text">Cada dia desbloquea una palabra nueva en espanol hasta su llegada. Vamos celebrando con estilo!</p>
+            </div>
+        </section>
+        <div id="calendar"></div>
+    </main>
+
+    <script>
+        // Calendar Data Setup
+        // Each day is an object: { date: 'YYYY-MM-DD', spanish: '...', english: '...' }
+        const startDate = new Date();
+        // always start from today
+        startDate.setHours(0,0,0,0);
+
+        const endDate = new Date("2026-08-08");
+        endDate.setHours(0,0,0,0);
+
+        // Generate days between today and August 8th
+        function dateDiffDays(d1, d2) {
+            return Math.round((d2 - d1) / (24*3600*1000));
+        }
+
+        const DAYS = [
+            { spanish: "Hola", english: "Hello" },
+            { spanish: "Gracias", english: "Thank you" },
+            { spanish: "Por favor", english: "Please" },
+            { spanish: "Perro", english: "Dog" },
+            { spanish: "Gato", english: "Cat" },
+            { spanish: "Amigo", english: "Friend" },
+            { spanish: "Familia", english: "Family" },
+            { spanish: "Escuela", english: "School" },
+            { spanish: "Casa", english: "House" },
+            { spanish: "Coche", english: "Car" },
+            { spanish: "Comida", english: "Food" },
+            { spanish: "Baño", english: "Bathroom" },
+            { spanish: "Feliz", english: "Happy" },
+            { spanish: "Triste", english: "Sad" },
+            { spanish: "Libro", english: "Book" },
+            { spanish: "Música", english: "Music" },
+            { spanish: "Agua", english: "Water" },
+            { spanish: "Tarde", english: "Afternoon" },
+            { spanish: "Mañana", english: "Morning" },
+            { spanish: "Hermoso", english: "Beautiful" },
+            { spanish: "Rápido", english: "Fast" },
+            { spanish: "Lento", english: "Slow" },
+            { spanish: "Zapato", english: "Shoe" },
+            { spanish: "Color", english: "Color" },
+            { spanish: "Sol", english: "Sun" },
+            { spanish: "Luna", english: "Moon" },
+            { spanish: "Padre", english: "Father" },
+            { spanish: "Madre", english: "Mother" },
+            { spanish: "Hijo", english: "Son" },
+            { spanish: "Hija", english: "Daughter" },
+            { spanish: "Tiempo", english: "Time/Weather" }
+        ]; // If there are more days than this, repeat or use random words.
+
+        // Create calendar days array
+        const totalDays = dateDiffDays(startDate, endDate) + 1;
+
+        function getDateString(date) {
+            return date.toISOString().split('T')[0];
+        }
+
+        const today = new Date();
+        today.setHours(0,0,0,0);
+
+        const CALENDAR_DAYS = [];
+        for (let i = 0; i < totalDays; i++) {
+            const date = new Date(startDate.getTime());
+            date.setDate(date.getDate() + i);
+            const word = DAYS[i % DAYS.length];
+            CALENDAR_DAYS.push({
+                dateStr: getDateString(date),
+                dayNumber: i+1,
+                ...word
+            });
+        }
+
+        // Load revealed days from localStorage
+        let revealed = {};
+        try {
+            const raw = localStorage.getItem('spanish_calendar_revealed');
+            if (raw) revealed = JSON.parse(raw);
+        } catch {}
+
+        // Theme toggle
+        const THEME_KEY = 'spanish_calendar_theme';
+        const preferredTheme = localStorage.getItem(THEME_KEY);
+        if (preferredTheme === 'dark' || preferredTheme === 'light') {
+            document.body.setAttribute('data-theme', preferredTheme);
+        }
+
+        const themeToggle = document.getElementById('theme-toggle');
+        function syncThemeToggleLabel() {
+            const isDark = document.body.getAttribute('data-theme') === 'dark';
+            themeToggle.textContent = isDark ? 'Light mode' : 'Dark mode';
+            themeToggle.setAttribute('aria-pressed', String(isDark));
+        }
+
+        themeToggle.addEventListener('click', () => {
+            const isDark = document.body.getAttribute('data-theme') === 'dark';
+            const nextTheme = isDark ? 'light' : 'dark';
+            document.body.setAttribute('data-theme', nextTheme);
+            localStorage.setItem(THEME_KEY, nextTheme);
+            syncThemeToggleLabel();
+        });
+
+        syncThemeToggleLabel();
+
+        // Render Calendar
+        function renderCalendar() {
+            const calendar = document.getElementById('calendar');
+            calendar.innerHTML = '';
+            const todayStr = getDateString(today);
+            CALENDAR_DAYS.forEach((day, idx) => {
+                const isPastOrToday = day.dateStr <= todayStr;
+                const isFuture = day.dateStr > todayStr;
+                const dayKey = day.dateStr;
+                const isRevealed = !!revealed[dayKey];
+                const li = document.createElement('div');
+                li.className = "calendar-day";
+                li.setAttribute('data-revealed', isRevealed);
+                if (isFuture) li.setAttribute('data-locked', 'true');
+                li.innerHTML = `
+                    <span class="day-number">${day.dayNumber}</span>
+                    ${isRevealed ? `
+                        <span class="word">${day.spanish}</span>
+                        <span class="translation">${day.english}</span>
+                    ` : isFuture ? `
+                        <span class="word status">Locked 🔒</span>
+                    ` : `
+                        <span class="word status">?</span>
+                        <span class="translation">Click to reveal</span>
+                    `}
+                `;
+                if (isPastOrToday && !isRevealed) {
+                    li.addEventListener('click', () => {
+                        revealed[dayKey] = true;
+                        localStorage.setItem('spanish_calendar_revealed', JSON.stringify(revealed));
+                        renderCalendar();
+                    });
+                }
+                calendar.appendChild(li);
+            });
+        }
+
+        // Countdown logic
+        function updateCountdown() {
+            const now = new Date();
+            const arrDate = new Date(endDate);
+            arrDate.setHours(0,0,0,0);
+            const ms = arrDate - now;
+            if (ms < 0) {
+                document.getElementById("countdown").textContent = "Patri has arrived! 🎉";
+                return;
+            }
+            const days = Math.floor(ms / (1000*60*60*24));
+            const hours = Math.floor((ms % (1000*60*60*24))/(1000*60*60));
+            const minutes = Math.floor((ms % (1000*60*60))/(1000*60));
+            document.getElementById("countdown").textContent = 
+                `${days} day${days===1?'':'s'} and ${hours}h ${minutes}m to go!`;
+        }
+
+        renderCalendar();
+        updateCountdown();
+        setInterval(updateCountdown, 60*1000);
+
+    </script>
+</body>
+</html>
