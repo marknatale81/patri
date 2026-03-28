@@ -299,9 +299,61 @@
     <script>
         // Calendar Data Setup
         // Each day is an object: { date: 'YYYY-MM-DD', spanish: '...', english: '...' }
-        const startDate = new Date();
-        // always start from today
-        startDate.setHours(0,0,0,0);
+        const ANCHOR_KEY = 'spanish_calendar_anchor_date';
+
+        function getLocalDateString(date) {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return y + '-' + m + '-' + d;
+        }
+
+        function parseLocalDateString(s) {
+            const parts = String(s).split('-');
+            if (parts.length !== 3) return null;
+            const y = parseInt(parts[0], 10);
+            const mo = parseInt(parts[1], 10) - 1;
+            const day = parseInt(parts[2], 10);
+            if (isNaN(y) || isNaN(mo) || isNaN(day)) return null;
+            const dt = new Date(y, mo, day);
+            dt.setHours(0, 0, 0, 0);
+            return dt;
+        }
+
+        function resolveAnchorDateStr() {
+            let stored = localStorage.getItem(ANCHOR_KEY);
+            if (stored) {
+                return { dateStr: stored, anchorSource: 'stored' };
+            }
+            try {
+                const raw = localStorage.getItem('spanish_calendar_revealed');
+                if (raw) {
+                    const rev = JSON.parse(raw);
+                    const keys = Object.keys(rev).filter(function (k) {
+                        return /^\d{4}-\d{2}-\d{2}$/.test(k);
+                    });
+                    if (keys.length) {
+                        keys.sort();
+                        stored = keys[0];
+                        localStorage.setItem(ANCHOR_KEY, stored);
+                        return { dateStr: stored, anchorSource: 'fromRevealed' };
+                    }
+                }
+            } catch (e) {}
+            const t = new Date();
+            t.setHours(0, 0, 0, 0);
+            stored = getLocalDateString(t);
+            localStorage.setItem(ANCHOR_KEY, stored);
+            return { dateStr: stored, anchorSource: 'new' };
+        }
+
+        const anchorMeta = resolveAnchorDateStr();
+        let startDate = parseLocalDateString(anchorMeta.dateStr);
+        if (!startDate) {
+            startDate = new Date();
+            startDate.setHours(0, 0, 0, 0);
+            localStorage.setItem(ANCHOR_KEY, getLocalDateString(startDate));
+        }
 
         const endDate = new Date("2026-08-08");
         endDate.setHours(0,0,0,0);
@@ -349,11 +401,14 @@
         const totalDays = dateDiffDays(startDate, endDate) + 1;
 
         function getDateString(date) {
-            return date.toISOString().split('T')[0];
+            return getLocalDateString(date);
         }
 
-        const today = new Date();
-        today.setHours(0,0,0,0);
+        function getTodayDateString() {
+            const t = new Date();
+            t.setHours(0, 0, 0, 0);
+            return getDateString(t);
+        }
 
         const CALENDAR_DAYS = [];
         for (let i = 0; i < totalDays; i++) {
@@ -402,7 +457,7 @@
         function renderCalendar() {
             const calendar = document.getElementById('calendar');
             calendar.innerHTML = '';
-            const todayStr = getDateString(today);
+            const todayStr = getTodayDateString();
             CALENDAR_DAYS.forEach((day, idx) => {
                 const isPastOrToday = day.dateStr <= todayStr;
                 const isFuture = day.dateStr > todayStr;
